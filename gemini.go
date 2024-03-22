@@ -31,6 +31,25 @@ func GeminiMessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate
 
 	// For text-only input, use the gemini-pro model
 	model := client.GenerativeModel("gemini-pro")
+	model.SafetySettings = []*genai.SafetySetting{
+		{
+			Category:  genai.HarmCategoryHateSpeech,
+			Threshold: genai.HarmBlockNone,
+		},
+		{
+			Category:  genai.HarmCategorySexuallyExplicit,
+			Threshold: genai.HarmBlockNone,
+		},
+		{
+			Category:  genai.HarmCategoryDangerousContent,
+			Threshold: genai.HarmBlockNone,
+		},
+		{
+			Category:  genai.HarmCategoryHarassment,
+			Threshold: genai.HarmBlockNone,
+		},
+	}
+
 	resp, err := model.GenerateContent(ctx, genai.Text(content))
 	if err != nil {
 		_, err = s.ChannelMessageSend(m.ChannelID, err.Error())
