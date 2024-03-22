@@ -9,7 +9,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/generative-ai-go/genai"
 	"github.com/spf13/viper"
-	"google.golang.org/api/option"
 )
 
 // GeminiMessageCreateHandler
@@ -21,36 +20,10 @@ func GeminiMessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate
 
 	content := strings.Replace(m.Content, viper.GetString("Bot.Prefix"), "", 1)
 
-	ctx := context.Background()
-	// Access your API key as an environment variable (see "Set up your API key" above)
-	client, err := genai.NewClient(ctx, option.WithAPIKey(viper.GetString("Gimini.APIKey")))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer client.Close()
-
-	// For text-only input, use the gemini-pro model
-	model := client.GenerativeModel("gemini-pro")
-	model.SafetySettings = []*genai.SafetySetting{
-		{
-			Category:  genai.HarmCategoryHateSpeech,
-			Threshold: genai.HarmBlockNone,
-		},
-		{
-			Category:  genai.HarmCategorySexuallyExplicit,
-			Threshold: genai.HarmBlockNone,
-		},
-		{
-			Category:  genai.HarmCategoryDangerousContent,
-			Threshold: genai.HarmBlockNone,
-		},
-		{
-			Category:  genai.HarmCategoryHarassment,
-			Threshold: genai.HarmBlockNone,
-		},
-	}
-
-	resp, err := model.GenerateContent(ctx, genai.Text(content))
+	resp, err := cs.SendMessage(
+		context.Background(),
+		genai.Text(content),
+	)
 	if err != nil {
 		_, err = s.ChannelMessageSend(m.ChannelID, err.Error())
 		if err != nil {
