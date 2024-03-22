@@ -71,7 +71,7 @@ func (v *VoiceInstance) DCA(url string) {
 
 	encodeSession, err := dca.EncodeFile(url, opts)
 	if err != nil {
-		log.Println("FATA: Failed creating an encoding session: ", err)
+		log.Println("FATAL: Failed creating an encoding session: ", err)
 	}
 	v.encoder = encodeSession
 	done := make(chan error)
@@ -81,7 +81,7 @@ func (v *VoiceInstance) DCA(url string) {
 		select {
 		case err := <-done:
 			if err != nil && err != io.EOF {
-				log.Println("FATA: An error occured", err)
+				log.Println("FATAL: An error occured", err)
 			}
 			// Clean up incase something happened and ffmpeg is still running
 			encodeSession.Cleanup()

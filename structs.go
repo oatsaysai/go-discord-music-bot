@@ -7,7 +7,6 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/jonas747/dca"
-	//"gopkg.in/hraban/opus.v2"
 )
 
 type Options struct {

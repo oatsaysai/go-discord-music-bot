@@ -97,7 +97,7 @@ func YoutubeFind(searchString string, v *VoiceInstance, m *discordgo.MessageCrea
 		}
 	}
 
-	call := service.Search.List("id,snippet").Q(searchString).MaxResults(1)
+	call := service.Search.List([]string{"id", "snippet"}).Q(searchString).MaxResults(1)
 	response, err := call.Do()
 	if err != nil {
 		//log.Fatalf("Error making search API call: %v", err)
@@ -131,7 +131,7 @@ func YoutubeFind(searchString string, v *VoiceInstance, m *discordgo.MessageCrea
 
 	videoURL := respDown.Request.URL
 
-	videos := service.Videos.List("contentDetails").Id(vid.ID)
+	videos := service.Videos.List([]string{"contentDetails"}).Id(vid.ID)
 	resp, err := videos.Do()
 
 	duration := resp.Items[0].ContentDetails.Duration
