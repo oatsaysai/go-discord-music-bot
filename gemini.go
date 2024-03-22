@@ -18,8 +18,9 @@ func GeminiMessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate
 		return
 	}
 
-	content := strings.Replace(m.Content, viper.GetString("Bot.Prefix"), "", 1)
+	csMutex.Lock()
 
+	content := strings.Replace(m.Content, viper.GetString("Bot.Prefix"), "", 1)
 	resp, err := cs.SendMessage(
 		context.Background(),
 		genai.Text(content),
@@ -44,6 +45,8 @@ func GeminiMessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate
 			}
 		}
 	}
+
+	csMutex.Unlock()
 
 	return
 }
