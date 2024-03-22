@@ -22,9 +22,9 @@ var (
 	// purgeQueue     []PurgeMessage
 	// radioSignal    chan PkgRadio
 	// ytdl           youtube.Youtube
-
-	model *genai.GenerativeModel
-	cs    *genai.ChatSession
+	csMutex sync.Mutex
+	model   *genai.GenerativeModel
+	cs      *genai.ChatSession
 )
 
 func main() {
