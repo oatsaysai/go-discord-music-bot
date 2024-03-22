@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
@@ -34,14 +35,30 @@ func GeminiMessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate
 	}
 
 	for _, candidate := range resp.Candidates {
-		fmt.Println(candidate)
-		response := fmt.Sprintf("%s", candidate.Content.Parts[0])
-		arrResponse := ChunksString(response, 2000)
+		for _, part := range candidate.Content.Parts {
+			// Handle Part
+			blob, _ := part.(genai.Blob)
+			if blob.Data != nil {
+				_, err = s.ChannelFileSend(
+					m.ChannelID,
+					"",
+					bytes.NewBuffer(blob.Data),
+				)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
 
-		for _, str := range arrResponse {
-			_, err = s.ChannelMessageSend(m.ChannelID, str)
-			if err != nil {
-				log.Fatal(err)
+			text, ok := part.(genai.Text)
+			if ok {
+				response := fmt.Sprintf("%s", text)
+				arrResponse := ChunksString(response, 2000)
+				for _, str := range arrResponse {
+					_, err = s.ChannelMessageSend(m.ChannelID, str)
+					if err != nil {
+						log.Fatal(err)
+					}
+				}
 			}
 		}
 	}

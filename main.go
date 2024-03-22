@@ -39,6 +39,7 @@ func main() {
 	defer client.Close()
 
 	// For text-only input, use the gemini-pro model
+	// For text-and-image input (multimodal), use the gemini-pro-vision model
 	model := client.GenerativeModel("gemini-pro")
 	model.SafetySettings = []*genai.SafetySetting{
 		{
