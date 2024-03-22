@@ -1,0 +1,6 @@
+Bot:
+  Token: "" # Token bot
+  Prefix: "."
+
+Youtube:
+  APIKey: ""
