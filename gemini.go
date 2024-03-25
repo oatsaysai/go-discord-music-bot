@@ -4,59 +4,75 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
-	"strings"
-
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/generative-ai-go/genai"
-	"github.com/spf13/viper"
+	"log"
+	"regexp"
 )
 
 // GeminiMessageCreateHandler
 func GeminiMessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	if !strings.HasPrefix(m.Content, viper.GetString("Bot.Prefix")) {
+	if m.Author.ID == s.State.User.ID { // Ignore the bot's own messages
 		return
 	}
 
 	csMutex.Lock()
 
-	content := strings.Replace(m.Content, viper.GetString("Bot.Prefix"), "", 1)
-	resp, err := cs.SendMessage(
-		context.Background(),
-		genai.Text(content),
-	)
-	if err != nil {
-		_, err = s.ChannelMessageSend(m.ChannelID, err.Error())
-		if err != nil {
-			log.Fatal(err)
-		}
-		return
-	}
+	for _, user := range m.Mentions {
+		if user.ID == s.State.User.ID { // Check if bot was mentioned
 
-	for _, candidate := range resp.Candidates {
-		for _, part := range candidate.Content.Parts {
-			// Handle Part
-			blob, _ := part.(genai.Blob)
-			if blob.Data != nil {
-				_, err = s.ChannelFileSend(
-					m.ChannelID,
-					"",
-					bytes.NewBuffer(blob.Data),
-				)
+			pattern := regexp.MustCompile(`<@\d+>`)
+			msg := pattern.ReplaceAllString(m.Content, "")
+			msg = msg[1:]
+			fmt.Printf("%s sent message: %s\n", m.Author.ID, msg)
+
+			resp, err := cs.SendMessage(
+				context.Background(),
+				genai.Text(msg),
+			)
+
+			if err != nil {
+				_, err = s.ChannelMessageSend(m.ChannelID, err.Error())
 				if err != nil {
 					log.Fatal(err)
 				}
+				return
 			}
 
-			text, ok := part.(genai.Text)
-			if ok {
-				response := fmt.Sprintf("%s", text)
-				arrResponse := ChunksString(response, 2000)
-				for _, str := range arrResponse {
-					_, err = s.ChannelMessageSend(m.ChannelID, str)
-					if err != nil {
-						log.Fatal(err)
+			for _, candidate := range resp.Candidates {
+				for _, part := range candidate.Content.Parts {
+					// Handle Part
+					blob, _ := part.(genai.Blob)
+					if blob.Data != nil {
+						_, err = s.ChannelFileSend(
+							m.ChannelID,
+							"",
+							bytes.NewBuffer(blob.Data),
+						)
+						if err != nil {
+							log.Fatal(err)
+						}
+					}
+
+					text, ok := part.(genai.Text)
+					if ok {
+						messageReference := &discordgo.MessageReference{
+							MessageID: m.Message.ID,
+							ChannelID: m.ChannelID,
+						}
+						response := fmt.Sprintf("<@%s> %s", m.Author.ID, text)
+						arrResponse := ChunksString(response, 2000)
+						for _, str := range arrResponse {
+							replyMessage := &discordgo.MessageSend{
+								Content:   str,
+								Reference: messageReference,
+							}
+							_, err = s.ChannelMessageSendComplex(m.ChannelID, replyMessage)
+							if err != nil {
+								log.Fatal(err)
+							}
+						}
 					}
 				}
 			}
