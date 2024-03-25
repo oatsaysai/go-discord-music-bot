@@ -32,7 +32,7 @@ func main() {
 	// Create Gemini chat session
 	ctx := context.Background()
 	// Access your API key as an environment variable (see "Set up your API key" above)
-	client, err := genai.NewClient(ctx, option.WithAPIKey(viper.GetString("Gimini.APIKey")))
+	client, err := genai.NewClient(ctx, option.WithAPIKey(viper.GetString("Gemini.APIKey")))
 	if err != nil {
 		log.Fatal(err)
 	}

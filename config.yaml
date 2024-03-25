@@ -1,9 +1,8 @@
 Bot:
-  Token: "" # Token bot
-  Prefix: "."
+  Token: ""
 
 Youtube:
   APIKey: ""
 
-Gimini:
+Gemini:
   APIKey: ""
